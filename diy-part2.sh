@@ -1,23 +1,10 @@
-#!/bin/bash
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# File name: diy-part2.sh
-# Description: OpenWrt DIY script part 2 (After Update feeds)
-#
-# Copyright (c) 2019-2024 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-# Modify default IP
-sed -i 's/192.168.1.1/192.168.10.99/g' package/base-files/files/bin/config_generate
+# Fail early when the pinned OpenWrt revision no longer contains the OneCloud
+# target expected by this repository.
+test -f target/linux/amlogic/files/arch/arm/boot/dts/amlogic/meson8b-onecloud.dts
+grep -q 'define Device/thunder-onecloud' target/linux/amlogic/image/meson8b.mk
+test -f package/luci-app-openclash/Makefile
 
-# Modify default theme
-#sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
-
-# Modify hostname
-sed -i 's/LEDE/OneCloud/g' package/base-files/files/bin/config_generate
-
-# 替换终端为bash
-sed -i 's/\/bin\/ash/\/bin\/bash/' package/base-files/files/etc/passwd
+echo 'OneCloud target and OpenClash package are available.'

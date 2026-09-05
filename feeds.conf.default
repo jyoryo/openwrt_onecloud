@@ -1,0 +1,4 @@
+# Only the feeds required by this single-purpose OneCloud image are enabled.
+# Pinning each feed keeps future GitHub Actions runs reproducible.
+src-git packages https://github.com/coolsnowwolf/packages.git^52082da251e709d662dd51f8cf538193ca5fdb33
+src-git luci https://github.com/coolsnowwolf/luci.git^9f2b84adca16c07a32c13cf27c1614331890cef3

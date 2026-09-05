@@ -1,21 +1,26 @@
-#!/bin/bash
-#
-# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# File name: diy-part1.sh
-# Description: OpenWrt DIY script part 1 (Before Update feeds)
-#
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-# Uncomment a feed source
-sed -i 's/^#\(.*helloworld\)/\1/' feeds.conf.default
+: "${OPENCLASH_REPO:?OPENCLASH_REPO is required}"
+: "${OPENCLASH_COMMIT:?OPENCLASH_COMMIT is required}"
 
-# Add a feed source
-sed -i '1i src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git;main' feeds.conf.default
-sed -i '2i src-git passwall_luci https://github.com/Openwrt-Passwall/openwrt-passwall.git;main' feeds.conf.default
+openclash_checkout="$(mktemp -d)"
+cleanup() {
+  rm -rf "${openclash_checkout}"
+}
+trap cleanup EXIT
 
-#sed -i '2s/^#//' feeds.conf.default
-#sed -i '3s/^/#/' feeds.conf.default
+git -C "${openclash_checkout}" init
+git -C "${openclash_checkout}" remote add origin "${OPENCLASH_REPO}"
+git -C "${openclash_checkout}" config core.sparseCheckout true
+printf '%s\n' 'luci-app-openclash/' > "${openclash_checkout}/.git/info/sparse-checkout"
+git -C "${openclash_checkout}" fetch --depth 1 origin "${OPENCLASH_COMMIT}"
+git -C "${openclash_checkout}" checkout --detach FETCH_HEAD
+
+test "$(git -C "${openclash_checkout}" rev-parse HEAD)" = "${OPENCLASH_COMMIT}"
+test -f "${openclash_checkout}/luci-app-openclash/Makefile"
+
+rm -rf package/luci-app-openclash
+cp -a "${openclash_checkout}/luci-app-openclash" package/luci-app-openclash
+
+echo "OpenClash source: ${OPENCLASH_COMMIT}"

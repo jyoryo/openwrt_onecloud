@@ -1,21 +1,41 @@
+# OneCloud OpenWrt
 
-# 玩客云openwrt自动编译
+用于编译玩客云 S805 的 OpenWrt 单网口旁路由固件，仅保留 LuCI、
+firewall4 和 OpenClash 所需组件。
 
-集合常用插件，不定期编译。
+## 默认网络
 
-## 使用方法
+- 管理地址：`192.168.10.2/24`
+- 上游主路由：`192.168.10.1`
+- 上游 DNS：`192.168.10.1`
+- DHCP/DHCPv6 服务：关闭
+- 主机名：`OneCloud`
 
-文件名包含burn的为线刷固件，解压后使用[Amlogic_USB_Burning_Tool](https://androiddatahost.com/khfj4)烧录。\
-红灯闪是在启动中，启动完成后蓝灯常亮。首次启动时间可能会长一些(五分钟左右)。
+需要使用代理的客户端应把网关和 DNS 设置为 `192.168.10.2`。其他客户端
+继续使用主路由 `192.168.10.1`，不会经过旁路由。
 
-- 登录ip: 192.168.10.99
-- 用户名: root
-- 密码: password
+固件不预设 root 密码。首次登录后请立即设置密码。
 
-## 感谢
-- 自动编译工作流改自 https://github.com/P3TERX/Actions-OpenWrt
-- 玩客云u-boot https://github.com/hzyitc/u-boot-onecloud
-- openwrt源码 https://github.com/coolsnowwolf/lede
-- 线刷包打包工具 https://github.com/hzyitc/AmlImg
-- 打包脚本改自 https://github.com/shiyu1314/openwrt-onecloud
-- 所有为openwrt做出贡献的人
+## 构建
+
+在 GitHub Actions 中手动运行 `Build OneCloud OpenWrt`。构建固定版本的
+`coolsnowwolf/lede`、必要 feeds 和 `vernesong/OpenClash`，成功后同时产生
+普通 eMMC 镜像和文件名包含 `.burn.img.xz` 的 Amlogic USB Burning Tool
+线刷镜像。
+
+OpenClash 的 Mihomo ARMv7 内核暂不预置。刷机后可在 LuCI 的 OpenClash
+页面下载或更新内核；后续可再将经过校验的固定版本内核加入固件。
+
+## 刷机提示
+
+`.burn.img.xz` 解压后可供 Amlogic USB Burning Tool 使用。刷机有导致设备
+无法启动或数据丢失的风险，请确认设备型号并提前备份。
+
+## 来源
+
+- OpenWrt 源码：https://github.com/coolsnowwolf/lede
+- OpenClash：https://github.com/vernesong/OpenClash
+- OneCloud 参考：https://github.com/xydche/onecloud-openwrt
+- OneCloud 参考：https://github.com/shiyu1314/openwrt-onecloud
+- U-Boot：https://github.com/hzyitc/u-boot-onecloud
+- AmlImg：https://github.com/hzyitc/AmlImg

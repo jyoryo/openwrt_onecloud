@@ -1,66 +1,58 @@
-#!/bin/bash
-sudo apt-get install img2simg
-./AmlImg unpack ./uboot.img burn/
-gzip -dk openwrt/bin/targets/*/*/*.gz
+#!/usr/bin/env bash
+set -Eeuo pipefail
+shopt -s nullglob
 
-diskimg_path="openwrt/bin/targets/*/*/*.img"
-boot_img_name="openwrt.img"
-boot_img_mnt="xd"
-rootfs_img_mnt="img"
-prefix=$(ls $diskimg_path | sed 's/\.img$//')
-burnimg_name="${prefix}.burn.img"
+workspace="${GITHUB_WORKSPACE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+target_dir="${workspace}/openwrt/bin/targets/amlogic/meson8b"
+amlimg="${workspace}/AmlImg"
+uboot_image="${workspace}/uboot.img"
+temp_dir="$(mktemp -d)"
+burn_dir="${temp_dir}/burn"
+loop_device=''
 
-diskimg=$(ls -1 $diskimg_path | head -n 1)
-loop=$(sudo losetup --find --show --partscan "$diskimg" | sed 's/[^[:print:]]//g')
+cleanup() {
+  if [[ -n "${loop_device}" ]]; then
+    sudo losetup -d "${loop_device}" >/dev/null 2>&1 || true
+  fi
+  rm -rf "${temp_dir}"
+}
+trap cleanup EXIT
 
-if [ -z "$loop" ]; then
-  echo "Error: Failed to setup loop device."
+compressed_images=("${target_dir}"/*thunder-onecloud*ext4*emmc.img.gz)
+if [[ ${#compressed_images[@]} -ne 1 ]]; then
+  echo "Expected exactly one compressed OneCloud eMMC image, found ${#compressed_images[@]}." >&2
   exit 1
 fi
 
-dd if=/dev/zero of="${boot_img_name}" bs=1M count=600 status=progress
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to create boot image."
-  exit 1
-fi
+test -x "${amlimg}"
+test -f "${uboot_image}"
+command -v img2simg >/dev/null
 
-mkfs.ext4 "${boot_img_name}"
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to format boot image."
-  exit 1
-fi
+source_image="${compressed_images[0]}"
+raw_image="${temp_dir}/onecloud-emmc.img"
+output_prefix="${source_image%.img.gz}"
+burn_image="${output_prefix}.burn.img"
 
-mkdir -p "${boot_img_mnt}" "${rootfs_img_mnt}"
-sudo mount "${boot_img_name}" "${boot_img_mnt}"
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to mount boot image."
-  exit 1
-fi
+gzip -dc "${source_image}" > "${raw_image}"
+"${amlimg}" unpack "${uboot_image}" "${burn_dir}"
 
-sudo mount "${loop}p2" "${rootfs_img_mnt}"
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to mount rootfs partition."
-  exit 1
-fi
+loop_device="$(sudo losetup --find --show --partscan "${raw_image}")"
+test -b "${loop_device}p1"
+test -b "${loop_device}p2"
 
-sudo cp -rp ${rootfs_img_mnt}/* "${boot_img_mnt}"
-sudo sync
+sudo img2simg "${loop_device}p1" "${burn_dir}/boot.simg"
+sudo img2simg "${loop_device}p2" "${burn_dir}/rootfs.simg"
+sudo chown "$(id -u):$(id -g)" "${burn_dir}/boot.simg" "${burn_dir}/rootfs.simg"
 
-sudo umount "${boot_img_mnt}" || true
-sudo umount "${rootfs_img_mnt}" || true
-rm -rf "${boot_img_mnt}" "${rootfs_img_mnt}"
+sudo losetup -d "${loop_device}"
+loop_device=''
 
-sudo img2simg "${loop}p1" burn/boot.simg
-sudo img2simg "${boot_img_name}" burn/rootfs.simg
-sudo rm -f "${boot_img_name}"
+printf '%s\n' \
+  'PARTITION:boot:sparse:boot.simg' \
+  'PARTITION:rootfs:sparse:rootfs.simg' >> "${burn_dir}/commands.txt"
 
-sudo losetup -d "$loop" || true
+"${amlimg}" pack "${burn_image}" "${burn_dir}"
+xz -T0 -6 --force "${burn_image}"
+sha256sum "${burn_image}.xz" > "${burn_image}.xz.sha256"
 
-printf "PARTITION:boot:sparse:boot.simg\nPARTITION:rootfs:sparse:rootfs.simg\n" >> burn/commands.txt
-
-./AmlImg pack "${burnimg_name}" burn/
-sha256sum "${burnimg_name}" > "${burnimg_name}.sha"
-xz -9 --threads=0 --compress "${burnimg_name}"
-rm -rf burn
-rm ${diskimg_path}
-echo "Script execution completed."
+echo "Burn image: ${burn_image}.xz"
