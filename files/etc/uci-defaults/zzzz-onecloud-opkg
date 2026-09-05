@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# OpenWrt 24.10.5 does not provide an official package feed for
+# targets/amlogic/meson8b. Remove the invalid target-specific feed.
+if [ -f /etc/opkg/distfeeds.conf ]; then
+    sed -i '/^src\/gz openwrt_core /d' /etc/opkg/distfeeds.conf
+fi
+
+exit 0
