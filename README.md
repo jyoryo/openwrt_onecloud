@@ -1,7 +1,7 @@
 # OneCloud OpenWrt
 
 用于编译玩客云 S805 的 OpenWrt 单网口旁路由固件，仅保留 LuCI、
-firewall4、OpenClash 和 WireGuard 所需组件。
+firewall4、OpenClash、PassWall 2 和 WireGuard 所需组件。
 
 ## 默认网络
 
@@ -23,12 +23,18 @@ firewall4、OpenClash 和 WireGuard 所需组件。
 ## 构建
 
 在 GitHub Actions 中手动运行 `Build OneCloud OpenWrt`。构建固定版本的
-`coolsnowwolf/lede`、必要 feeds 和 `vernesong/OpenClash`，成功后同时产生
-普通 eMMC 镜像和文件名包含 `.burn.img.xz` 的 Amlogic USB Burning Tool
-线刷镜像。
+`coolsnowwolf/lede`、必要 feeds、`vernesong/OpenClash`、
+`Openwrt-Passwall/openwrt-passwall2` 和
+`Openwrt-Passwall/openwrt-passwall-packages`，成功后同时产生普通 eMMC
+镜像和文件名包含 `.burn.img.xz` 的 Amlogic USB Burning Tool 线刷镜像。
 
 OpenClash 的 Mihomo ARMv7 内核暂不预置。刷机后可在 LuCI 的 OpenClash
 页面下载或更新内核；后续可再将经过校验的固定版本内核加入固件。
+
+PassWall 2 使用 firewall4/nftables 透明代理模式，固件同时内置 Xray 和
+Sing-box 核心。OpenClash 与 PassWall 2 均保留，但不要同时启用：两者都会
+修改 dnsmasq、DNS 劫持和 nftables 透明代理规则。切换前请先停用当前代理
+服务并确认其规则已经清理。
 
 固件内置 WireGuard 内核模块、`wg` 命令和 LuCI 协议支持。刷机后可在
 “网络 → 接口”中新增 WireGuard 接口；固件不预置任何密钥或隧道配置。
@@ -42,6 +48,8 @@ OpenClash 的 Mihomo ARMv7 内核暂不预置。刷机后可在 LuCI 的 OpenCla
 
 - OpenWrt 源码：https://github.com/coolsnowwolf/lede
 - OpenClash：https://github.com/vernesong/OpenClash
+- PassWall 2：https://github.com/Openwrt-Passwall/openwrt-passwall2
+- PassWall 依赖包：https://github.com/Openwrt-Passwall/openwrt-passwall-packages
 - OneCloud 参考：https://github.com/xydche/onecloud-openwrt
 - OneCloud 参考：https://github.com/shiyu1314/openwrt-onecloud
 - U-Boot：https://github.com/hzyitc/u-boot-onecloud

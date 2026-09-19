@@ -6,6 +6,9 @@ set -Eeuo pipefail
 test -f target/linux/amlogic/files/arch/arm/boot/dts/amlogic/meson8b-onecloud.dts
 grep -q 'define Device/thunder-onecloud' target/linux/amlogic/image/meson8b.mk
 test -f package/luci-app-openclash/Makefile
+test -f feeds/passwall2/luci-app-passwall2/Makefile
+test -f feeds/passwall_packages/xray-core/Makefile
+test -f feeds/passwall_packages/sing-box/Makefile
 grep -q "set network.lan.proto='dhcp'" files/etc/uci-defaults/99-onecloud-side-router
 
-echo 'OneCloud target, OpenClash package and DHCP client defaults are available.'
+echo 'OneCloud target, OpenClash, PassWall 2 and DHCP client defaults are available.'

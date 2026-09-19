@@ -75,6 +75,18 @@ jobs:
           make defconfig
           grep -q '^CONFIG_TARGET_amlogic_meson8b_DEVICE_thunder-onecloud=y$' .config
           grep -q '^CONFIG_PACKAGE_luci-app-openclash=y$' .config
+          grep -q '^CONFIG_PACKAGE_luci-app-passwall2=y$' .config
+          grep -q '^CONFIG_PACKAGE_luci-i18n-passwall2-zh-cn=y$' .config
+          grep -q '^CONFIG_PACKAGE_luci-app-passwall2_Basic_Core_All=y$' .config
+          grep -q '^CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y$' .config
+          grep -q '^CONFIG_PACKAGE_xray-core=y$' .config
+          grep -q '^CONFIG_PACKAGE_sing-box=y$' .config
+          grep -q '^CONFIG_PACKAGE_kmod-nft-nat=y$' .config
+          grep -q '^CONFIG_PACKAGE_kmod-nft-socket=y$' .config
+          if grep -q '^CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=y$' .config; then
+            echo 'PassWall 2 iptables mode must stay disabled.' >&2
+            exit 1
+          fi
           grep -q '^CONFIG_PACKAGE_kmod-wireguard=y$' .config
           grep -q '^CONFIG_PACKAGE_wireguard-tools=y$' .config
           grep -q '^CONFIG_PACKAGE_luci-proto-wireguard=y$' .config
@@ -124,6 +136,8 @@ jobs:
           printf '%s\n' \
             "OpenWrt: ${OPENWRT_REPO}@${OPENWRT_COMMIT}" \
             "OpenClash: ${OPENCLASH_REPO}@${OPENCLASH_COMMIT}" \
+            "PassWall packages: $(awk '$2 == "passwall_packages" { print $3 }' feeds.conf.default)" \
+            "PassWall 2: $(awk '$2 == "passwall2" { print $3 }' feeds.conf.default)" \
             > "${target_dir}/source-revisions.txt"
           echo "target_dir=${target_dir}" >> "${GITHUB_OUTPUT}"
           echo "release_tag=onecloud-$(date +'%Y.%m.%d-%H%M')-${GITHUB_RUN_ID}" >> "${GITHUB_OUTPUT}"
@@ -142,7 +156,7 @@ jobs:
           tag_name: ${{ steps.artifacts.outputs.release_tag }}
           name: OneCloud OpenWrt ${{ steps.artifacts.outputs.release_tag }}
           body: |
-            OneCloud single-port side-router firmware with OpenClash and WireGuard.
+            OneCloud single-port side-router firmware with OpenClash, PassWall 2 and WireGuard.
 
             LAN address: assigned by the upstream DHCP server
             Recommended: reserve the assigned address on the main router

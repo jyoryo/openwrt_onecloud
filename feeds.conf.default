@@ -1,4 +1,8 @@
 # Only the feeds required by this single-purpose OneCloud image are enabled.
-# Pinning each feed keeps future GitHub Actions runs reproducible.
+# Pinning each feed keeps future GitHub Actions runs reproducible. Keep the
+# PassWall feeds first so their matching proxy/runtime packages take priority
+# over older copies from the general packages feed.
+src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git^03c57c1255a72f09c06cb4866025e07491de7d53
+src-git passwall2 https://github.com/Openwrt-Passwall/openwrt-passwall2.git^d4dfa3bb7e0032d8e43565bfa09a921c7a43b4b2
 src-git packages https://github.com/coolsnowwolf/packages.git^52082da251e709d662dd51f8cf538193ca5fdb33
 src-git luci https://github.com/coolsnowwolf/luci.git^9f2b84adca16c07a32c13cf27c1614331890cef3
