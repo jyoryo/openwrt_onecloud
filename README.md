@@ -36,6 +36,11 @@ Sing-box 核心。OpenClash 与 PassWall 2 均保留，但不要同时启用：�
 修改 dnsmasq、DNS 劫持和 nftables 透明代理规则。切换前请先停用当前代理
 服务并确认其规则已经清理。
 
+腾讯 LEDE 镜像不提供 PassWall 2 及其依赖软件源。固件首次启动时会根据
+OpenWrt 发行版本和软件包架构，将 `/etc/opkg/distfeeds.conf` 中这两个源
+改回 PassWall 官方 SourceForge 二进制仓库；其他基础软件源继续使用腾讯
+镜像。
+
 固件内置 WireGuard 内核模块、`wg` 命令和 LuCI 协议支持。刷机后可在
 “网络 → 接口”中新增 WireGuard 接口；固件不预置任何密钥或隧道配置。
 

@@ -1,9 +1,21 @@
 #!/bin/sh
 
 # OpenWrt 24.10.5 does not provide an official package feed for
-# targets/amlogic/meson8b. Remove the invalid target-specific feed.
+# targets/amlogic/meson8b, so remove the invalid target-specific feed. LEDE's
+# default-settings rewrites every generated feed to the Tencent mirror, but the
+# two PassWall feeds are published separately by the PassWall project. Restore
+# those two feeds to their official binary repository for this release and
+# architecture while keeping the standard LEDE feeds on the Tencent mirror.
 if [ -f /etc/opkg/distfeeds.conf ]; then
-    sed -i '/^src\/gz openwrt_core /d' /etc/opkg/distfeeds.conf
+    . /etc/openwrt_release
+    passwall_release="${DISTRIB_RELEASE%.*}"
+    passwall_base="https://sourceforge.net/projects/openwrt-passwall-build/files/releases/packages-${passwall_release}/${DISTRIB_ARCH}"
+
+    sed -i \
+        -e '/^src\/gz openwrt_core /d' \
+        -e "s#^src/gz openwrt_passwall2 .*#src/gz openwrt_passwall2 ${passwall_base}/passwall2#" \
+        -e "s#^src/gz openwrt_passwall_packages .*#src/gz openwrt_passwall_packages ${passwall_base}/passwall_packages#" \
+        /etc/opkg/distfeeds.conf
 fi
 
 exit 0
