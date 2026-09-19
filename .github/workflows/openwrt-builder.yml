@@ -78,10 +78,22 @@ jobs:
           grep -q '^CONFIG_PACKAGE_kmod-wireguard=y$' .config
           grep -q '^CONFIG_PACKAGE_wireguard-tools=y$' .config
           grep -q '^CONFIG_PACKAGE_luci-proto-wireguard=y$' .config
-          if grep -Eq '^CONFIG_PACKAGE_(luci-app-passwall|luci-app-homeproxy|luci-app-dockerman)=y$' .config; then
-            echo 'Unexpected package found in final configuration.' >&2
-            exit 1
-          fi
+          for package in automount block-mount mkf2fs partx-utils; do
+            grep -q "^CONFIG_PACKAGE_${package}=y$" .config
+          done
+          for package in \
+            luci-app-passwall luci-app-homeproxy luci-app-dockerman \
+            default-settings luci-app-ssr-plus \
+            ddns-scripts_aliyun ddns-scripts_dnspod luci-app-ddns \
+            luci-app-upnp luci-app-autoreboot luci-app-arpbind \
+            luci-app-filetransfer luci-app-vsftpd luci-app-vlmcsd \
+            luci-app-accesscontrol luci-app-nlbwmon luci-app-turboacc \
+            luci-app-wol coremark htop autocore-arm; do
+            if grep -q "^CONFIG_PACKAGE_${package}=y$" .config; then
+              echo "Unexpected package found in final configuration: ${package}" >&2
+              exit 1
+            fi
+          done
 
       - name: Download sources
         working-directory: openwrt
