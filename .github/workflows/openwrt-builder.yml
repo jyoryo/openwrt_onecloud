@@ -75,6 +75,9 @@ jobs:
           make defconfig
           grep -q '^CONFIG_TARGET_amlogic_meson8b_DEVICE_thunder-onecloud=y$' .config
           grep -q '^CONFIG_PACKAGE_luci-app-openclash=y$' .config
+          grep -q '^CONFIG_PACKAGE_kmod-wireguard=y$' .config
+          grep -q '^CONFIG_PACKAGE_wireguard-tools=y$' .config
+          grep -q '^CONFIG_PACKAGE_luci-proto-wireguard=y$' .config
           if grep -Eq '^CONFIG_PACKAGE_(luci-app-passwall|luci-app-homeproxy|luci-app-dockerman)=y$' .config; then
             echo 'Unexpected package found in final configuration.' >&2
             exit 1
@@ -124,10 +127,10 @@ jobs:
           tag_name: ${{ steps.artifacts.outputs.release_tag }}
           name: OneCloud OpenWrt ${{ steps.artifacts.outputs.release_tag }}
           body: |
-            OneCloud single-port side-router firmware with OpenClash.
+            OneCloud single-port side-router firmware with OpenClash and WireGuard.
 
-            LAN: 192.168.10.2/24
-            Upstream gateway: 192.168.10.1
+            LAN address: assigned by the upstream DHCP server
+            Recommended: reserve the assigned address on the main router
             DHCP server: disabled
           files: ${{ steps.artifacts.outputs.target_dir }}/*
           fail_on_unmatched_files: true

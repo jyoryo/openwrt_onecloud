@@ -1,12 +1,12 @@
 #!/bin/sh
 
 uci -q batch <<'EOF'
-set network.lan.proto='static'
-set network.lan.ipaddr='192.168.10.2'
-set network.lan.netmask='255.255.255.0'
-set network.lan.gateway='192.168.10.1'
+set network.lan.proto='dhcp'
+delete network.lan.ipaddr
+delete network.lan.netmask
+delete network.lan.gateway
 delete network.lan.dns
-add_list network.lan.dns='192.168.10.1'
+delete network.lan.ip6assign
 delete network.wan
 delete network.wan6
 
